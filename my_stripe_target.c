@@ -27,13 +27,13 @@ static int my_stripe_ctr(struct dm_target *ti, unsigned int argc, char **argv) {
         return -ENOMEM;
     }
 
-    if (dm_get_device(ti, argv[0], dm_table_get_mode(ti->table), &ctx->even_dev)) {
+    if (dm_get_device(ti, argv[0], &ctx->even_dev)) {
         ti->error = "Cannot get EVEN device";
         kfree(ctx);
         return -EINVAL;
     }
 
-    if (dm_get_device(ti, argv[1], dm_table_get_mode(ti->table), &ctx->odd_dev)) {
+    if (dm_get_device(ti, argv[1], &ctx->odd_dev)) {
         ti->error = "Cannot get ODD device";
         dm_put_device(ti, ctx->even_dev);
         kfree(ctx);
