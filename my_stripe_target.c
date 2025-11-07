@@ -15,6 +15,7 @@ struct my_stripe_context {
 
 static int my_stripe_ctr(struct dm_target *ti, unsigned int argc, char **argv) {
     struct my_stripe_context *ctx = NULL;
+    blk_mode_t mode = BLK_OPEN_READ | BLK_OPEN_WRITE;
 
     if (argc != 2) {
         ti->error = "Invalid argument count";
@@ -27,13 +28,13 @@ static int my_stripe_ctr(struct dm_target *ti, unsigned int argc, char **argv) {
         return -ENOMEM;
     }
 
-    if (dm_get_device(ti, argv[0], &ctx->even_dev)) {
+    if (dm_get_device(ti, argv[0], mode, &ctx->even_dev)) {
         ti->error = "Cannot get EVEN device";
         kfree(ctx);
         return -EINVAL;
     }
 
-    if (dm_get_device(ti, argv[1], &ctx->odd_dev)) {
+    if (dm_get_device(ti, argv[1], mode, &ctx->odd_dev)) {
         ti->error = "Cannot get ODD device";
         dm_put_device(ti, ctx->even_dev);
         kfree(ctx);
