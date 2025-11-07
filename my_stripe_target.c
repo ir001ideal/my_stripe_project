@@ -15,7 +15,6 @@ struct my_stripe_context {
 
 static int my_stripe_ctr(struct dm_target *ti, unsigned int argc, char **argv) {
     struct my_stripe_context *ctx = NULL;
-    fmode_t mode = FMODE_READ | FMODE_WRITE;
 
     if (argc != 2) {
         ti->error = "Invalid argument count";
@@ -28,13 +27,13 @@ static int my_stripe_ctr(struct dm_target *ti, unsigned int argc, char **argv) {
         return -ENOMEM;
     }
 
-    if (dm_get_device(ti, argv[0], mode, &ctx->even_dev)) {
+    if (dm_get_device(ti, argv[0], dm_table_get_mode(ti->table), &ctx->even_dev)) {
         ti->error = "Cannot get EVEN device";
         kfree(ctx);
         return -EINVAL;
     }
 
-    if (dm_get_device(ti, argv[1], mode, &ctx->odd_dev)) {
+    if (dm_get_device(ti, argv[1], dm_table_get_mode(ti->table), &ctx->odd_dev)) {
         ti->error = "Cannot get ODD device";
         dm_put_device(ti, ctx->even_dev);
         kfree(ctx);
@@ -42,8 +41,8 @@ static int my_stripe_ctr(struct dm_target *ti, unsigned int argc, char **argv) {
     }
 
     ti->private = ctx;
-    ti->max_io_len = 1;
-    ti->num_flush_bios = 2;
+    ti->num_flush_bios = 1;
+    ti->num_discard_bios = 1;
 
     printk(KERN_INFO "FINAL_FIX: constructor complete.\n");
     return 0;
@@ -63,9 +62,9 @@ static int my_stripe_map(struct dm_target *ti, struct bio *bio) {
     sector_t physical_sector;
 
     if (logical_sector & 1) {
-        bio->bi_bdev = ctx->odd_dev->bdev;
+        bio_set_dev(bio, ctx->odd_dev->bdev);
     } else {
-        bio->bi_bdev = ctx->even_dev->bdev;
+        bio_set_dev(bio, ctx->even_dev->bdev);
     }
 
     physical_sector = logical_sector >> 1;
@@ -74,13 +73,26 @@ static int my_stripe_map(struct dm_target *ti, struct bio *bio) {
     return DM_MAPIO_REMAPPED;
 }
 
+static int my_stripe_iterate_devices(struct dm_target *ti,
+                                      iterate_devices_callout_fn fn, void *data) {
+    struct my_stripe_context *ctx = ti->private;
+    int ret;
+
+    ret = fn(ti, ctx->even_dev, 0, ti->len, data);
+    if (ret)
+        return ret;
+
+    return fn(ti, ctx->odd_dev, 0, ti->len, data);
+}
+
 static struct target_type my_stripe_target = {
-    .name     = "my_stripe",
-    .version  = {1, 0, 0},
-    .module   = THIS_MODULE,
-    .ctr      = my_stripe_ctr,
-    .dtr      = my_stripe_dtr,
-    .map      = my_stripe_map,
+    .name             = "my_stripe",
+    .version          = {1, 0, 0},
+    .module           = THIS_MODULE,
+    .ctr              = my_stripe_ctr,
+    .dtr              = my_stripe_dtr,
+    .map              = my_stripe_map,
+    .iterate_devices  = my_stripe_iterate_devices,
 };
 
 static int __init my_stripe_init(void) {
