@@ -19,5 +19,8 @@ echo "Removing backing files (optional)..."
 # Uncomment if you want to delete the disk images too:
 # sudo rm -f /tmp/disk0.img /tmp/disk1.img
 
+echo "Cleaning compiled module files..."
+make clean
+
 echo ""
 echo "=== Cleanup complete! ==="

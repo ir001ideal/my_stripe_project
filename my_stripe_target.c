@@ -42,6 +42,7 @@ static int my_stripe_ctr(struct dm_target *ti, unsigned int argc, char **argv) {
     }
 
     ti->private = ctx;
+    ti->max_io_len = 1;
     ti->num_flush_bios = 1;
     ti->num_discard_bios = 1;
 
