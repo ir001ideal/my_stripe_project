@@ -77,13 +77,14 @@ static int my_stripe_map(struct dm_target *ti, struct bio *bio) {
 static int my_stripe_iterate_devices(struct dm_target *ti,
                                       iterate_devices_callout_fn fn, void *data) {
     struct my_stripe_context *ctx = ti->private;
+    sector_t dev_size = (ti->len + 1) / 2;  // Each device holds half the blocks (rounded up)
     int ret;
 
-    ret = fn(ti, ctx->even_dev, 0, ti->len, data);
+    ret = fn(ti, ctx->even_dev, 0, dev_size, data);
     if (ret)
         return ret;
 
-    return fn(ti, ctx->odd_dev, 0, ti->len, data);
+    return fn(ti, ctx->odd_dev, 0, dev_size, data);
 }
 
 static struct target_type my_stripe_target = {
