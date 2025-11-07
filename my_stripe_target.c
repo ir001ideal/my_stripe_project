@@ -43,7 +43,7 @@ static int my_stripe_ctr(struct dm_target *ti, unsigned int argc, char **argv) {
 
     ti->private = ctx;
     ti->max_io_len = 1;
-    ti->num_flush_bios = 0;
+    ti->num_flush_bios = 2;
 
     printk(KERN_INFO "FINAL_FIX: constructor complete.\n");
     return 0;
