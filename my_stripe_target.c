@@ -5,7 +5,7 @@
 #include <linux/device-mapper.h>
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Your Name");
+MODULE_AUTHOR("Soham Joshi");
 MODULE_DESCRIPTION("Odd/Even (Stripe) DM Target");
 
 struct my_stripe_context {

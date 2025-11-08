@@ -16,7 +16,6 @@ sudo losetup -d /dev/loop0 2>/dev/null || echo "loop0 already detached"
 sudo losetup -d /dev/loop1 2>/dev/null || echo "loop1 already detached"
 
 echo "Removing backing files (optional)..."
-# Uncomment if you want to delete the disk images too:
 # sudo rm -f /tmp/disk0.img /tmp/disk1.img
 
 echo "Cleaning compiled module files..."
